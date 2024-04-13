@@ -14,14 +14,20 @@ def index():
 def add_expense():
     return render_template('add_expense.html')
 
+# Modify the expenses route in app.py
 @app.route('/expenses')
 def expenses():
+    category_filter = request.args.get('category-filter')
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM expenses")
-    expenses = cursor.fetchall()
+    categories = [row[0] for row in cursor.execute('SELECT DISTINCT category FROM expenses').fetchall()]
+    if category_filter:
+        expenses = cursor.execute('SELECT * FROM expenses WHERE category = ?', (category_filter,)).fetchall()
+    else:
+        expenses = cursor.execute("SELECT * FROM expenses").fetchall()
     conn.close()
-    return render_template('expenses.html', expenses=expenses)
+    return render_template('expenses.html', expenses=expenses, categories=categories)
+
 
 @app.route('/add_expense', methods=['POST'])
 def add_expense_post():
@@ -84,6 +90,7 @@ def delete_expense(expense_id):
     # Flash success message and redirect to expenses page
     flash("Expense successfully deleted", "success")
     return redirect(url_for('expenses'))
+
 
 if __name__ == '__main__':
     app.run(debug=True)

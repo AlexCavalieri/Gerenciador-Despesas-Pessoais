@@ -30,6 +30,16 @@
 <body>
     <div class="container">
         <h1>Expenses</h1>
+        <form method="GET" action="/expenses">
+            <label for="category-filter">Filter by Category:</label>
+            <select id="category-filter" name="category-filter">
+                <option value="">All Categories</option>
+                {% for category in categories %}
+                <option value="{{ category }}">{{ category }}</option>
+                {% endfor %}
+            </select>
+            <input type="submit" value="Apply">
+        </form>
         <table class="table">
             <tr>
                 <th>Date</th>
