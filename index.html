@@ -51,9 +51,11 @@
         <h3>Lista de Despesas</h3>
         <ul id="listaDespesas" class="list-group">
           {% for despesa in despesas %}
-            <li class="list-group-item">{{ despesa.nome }} - R$ {{ despesa.valor }} - {{ despesa.categoria.nome }}</li>
-            <button class="btn btn-sm btn-info ml-2" onclick="editarDespesa(this)" data-despesa-id="{{ despesa.id }}">Editar</button>
-            <button class="btn btn-sm btn-danger ml-2" onclick="removerDespesa(this)" data-despesa-id="{{ despesa.id }}">Excluir</button>
+            <li class="list-group-item">
+              {{ despesa.nome }} - R$ {{ despesa.valor }} - {{ despesa.categoria.nome }}
+              <button class="btn btn-sm btn-info ml-2" onclick="editarDespesa(this)" data-despesa-id="{{ despesa.id }}">Editar</button>
+              <button class="btn btn-sm btn-danger ml-2" onclick="removerDespesa(this)" data-despesa-id="{{ despesa.id }}">Excluir</button>
+            </li>
           {% endfor %}
         </ul>
       </div>
