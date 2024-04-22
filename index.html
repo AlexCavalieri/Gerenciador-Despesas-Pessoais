@@ -1,0 +1,177 @@
+<!-- templates/index.html -->
+
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gerenciador de Despesas Pessoais</title>
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+  <!-- Bootstrap CSS -->
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+  <div class="container mt-5">
+    <h1 class="mb-4">Gerenciador de Despesas Pessoais</h1>
+    <a href="grafico">Ver Gráfico</a>
+    <div class="row">
+      <div class="col-md-6">
+        <form id="formDespesa">
+          <div class="form-group">
+            <label for="inputNome">Nome da Despesa</label>
+            <input type="text" class="form-control" id="inputNome" placeholder="Digite o nome da despesa">
+          </div>
+          <div class="form-group">
+            <label for="inputValor">Valor</label>
+            <input type="text" class="form-control" id="inputValor" placeholder="Digite o valor da despesa">
+          </div>
+          <div class="form-group">
+            <label for="inputCategoria">Categoria</label>
+            <select class="form-control" id="inputCategoria" onchange="obterLimite()">
+                <option value="" disabled selected>Selecione a categoria</option>
+                <option value="Alimentação">Alimentação</option>
+                <option value="Moradia">Moradia</option>
+                <option value="Transporte">Transporte</option>
+                <option value="Saúde">Saúde</option>
+                <option value="Educação">Educação</option>
+                <option value="Lazer">Lazer</option>
+                <option value="Vestuário">Vestuário</option>
+                <option value="Serviços financeiros">Serviços financeiros</option>
+                <option value="Outros">Outros</option>
+            </select>
+        </div>
+        <div class="form-group" id="limiteGastos" style="display: none;">
+            <label for="inputLimite">Limite de Gastos</label>
+            <input type="number" class="form-control" id="inputLimite" placeholder="Digite o limite de gastos">
+        </div>
+          <button type="submit" class="btn btn-primary">Adicionar Despesa</button>
+        </form>
+      </div>
+      <div class="col-md-6">
+        <h3>Lista de Despesas</h3>
+        <ul id="listaDespesas" class="list-group">
+          {% for despesa in despesas %}
+            <li class="list-group-item">{{ despesa.nome }} - R$ {{ despesa.valor }} - {{ despesa.categoria.nome }}</li>
+            <button class="btn btn-sm btn-info ml-2" onclick="editarDespesa(this)" data-despesa-id="{{ despesa.id }}">Editar</button>
+            <button class="btn btn-sm btn-danger ml-2" onclick="removerDespesa(this)" data-despesa-id="{{ despesa.id }}">Excluir</button>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+  <script>
+    $.ajax({
+    type: "POST",
+    url: "/cadastrar_categorias",
+    contentType: "application/json",
+    success: function(response) {
+        console.log(response);
+        
+    },
+    error: function(error) {
+        console.log(error);
+    }
+});
+// Função para lidar com o envio do formulário e adicionar a despesa à lista
+$('#formDespesa').submit(function(event) {
+    event.preventDefault(); // Evita o envio do formulário padrão
+    var nome = $('#inputNome').val();
+    var valor = $('#inputValor').val().replace(',', '.');
+    var categoriaNome = $('#inputCategoria option:selected').text(); // Obter o nome da categoria selecionada
+    // Validar se o valor é numérico
+    if (!isNaN(parseFloat(valor)) && isFinite(valor)) {
+        // Fazer requisição AJAX para adicionar a despesa
+        $.ajax({
+            type: 'POST',
+            url: '/adicionar_despesa',
+            contentType: 'application/json',
+            data: JSON.stringify({ nome: nome, valor: valor, categoria: categoriaNome }), // Enviar o nome da categoria
+            success: function(response) {
+                console.log(response);
+                if (response.mensagem.startsWith('O limite de gastos para a categoria')) {
+                    alert(response.mensagem);
+                }
+                // Adicionar a despesa à lista dinamicamente
+                var despesaItem = '<li class="list-group-item">' + nome + ' - R$ ' + valor + ' - ' + categoriaNome +
+                '<button class="btn btn-sm btn-info ml-2" onclick="editarDespesa(' + response.id + ')">Editar</button>' +
+                '<button class="btn btn-sm btn-danger ml-2" onclick="removerDespesa(' + response.id + ')">Excluir</button></li>';
+                $('#listaDespesas').append(despesaItem);
+                $('#formDespesa')[0].reset(); // Limpa o formulário após a adição da despesa
+            },
+            error: function(xhr, status, error) {
+                console.error(xhr.responseText);
+                alert('Erro ao adicionar despesa. Verifique o console para mais informações.');
+            }
+        });
+    } else {
+        alert('Por favor, insira um valor numérico válido.');
+    }
+});
+
+// Função para obter o limite de gastos associado a uma categoria
+function obterLimite() {
+  var categoriaSelecionada = $('#inputCategoria').val();
+  $.get('/obter_limite', { categoria: categoriaSelecionada }, function (data) {
+    var limite = data.limite;
+    if (limite !== null) {
+      $('#limiteGastos').show();
+      $('#inputLimite').val(limite);
+    } else {
+      $('#limiteGastos').hide();
+      $('#inputLimite').val('');
+    }
+  });
+}
+
+// Função para editar uma despesa
+function editarDespesa(button) {
+    var id = $(button).data('despesa-id');
+    var novoNome = prompt('Digite o novo nome da despesa:');
+    var novoValor = prompt('Digite o novo valor da despesa:');
+    $.ajax({
+        type: 'PUT',
+        url: '/editar_despesa/' + id,
+        contentType: 'application/json',
+        data: JSON.stringify({ nome: novoNome, valor: novoValor }),
+        success: function(response) {
+            alert(response.mensagem);
+            // Atualizar a lista de despesas após a edição
+            window.location.reload();
+        },
+        error: function(xhr, status, error) {
+            console.error(xhr.responseText);
+            alert('Erro ao editar despesa. Verifique o console para mais informações.');
+        }
+    });
+}
+
+// Função para remover uma despesa
+function removerDespesa(button) {
+    var id = $(button).data('despesa-id');
+    if (confirm('Tem certeza que deseja excluir esta despesa?')) {
+        $.ajax({
+            type: 'DELETE',
+            url: '/remover_despesa/' + id,
+            success: function(response) {
+                alert(response.mensagem);
+                // Atualizar a lista de despesas após a remoção
+                window.location.reload();
+            },
+            error: function(xhr, status, error) {
+                console.error(xhr.responseText);
+                alert('Erro ao remover despesa. Verifique o console para mais informações.');
+            }
+        });
+    }
+}
+
+
+</script>
+</body>
+</html>
