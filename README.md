@@ -22,7 +22,7 @@ Backlog e Backlog do Sprint podem ser encontrados na aba de projetos ou acessand
    <img src="img/ClassUML.png">
   </p>
 
-##Diagrama de Atividades
+## Diagrama de Atividades
   <p align="center">
    <img src="img/FlowUML.png">
   </p>
