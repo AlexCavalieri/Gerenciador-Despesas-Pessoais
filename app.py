@@ -41,6 +41,40 @@ def adicionar_despesa():
         db.session.rollback()
         print("Erro ao adicionar despesa:", str(e))
         return jsonify({'mensagem': 'Erro ao adicionar despesa. Verifique o console para mais informações.'}), 500
+    
+# Rota para editar uma despesa existente no banco de dados
+@app.route('/editar_despesa/<int:id>', methods=['PUT'])
+def editar_despesa(id):
+    try:
+        despesa = db.session.query(Despesa).get_or_404(id)
+        
+        nome = request.json.get('nome', despesa.nome)
+        valor = float(request.json.get('valor', despesa.valor))
+        categoria = request.json.get('categoria', despesa.categoria)
+
+        despesa.nome = nome
+        despesa.valor = valor
+        despesa.categoria = categoria
+
+        db.session.commit()
+        return jsonify({'mensagem': 'Despesa editada com sucesso!'})
+    except Exception as e:
+        db.session.rollback()
+        print("Erro ao editar despesa:", str(e))
+        return jsonify({'mensagem': 'Erro ao editar despesa. Verifique o console para mais informações.'}), 500
+
+# Rota para remover uma despesa do banco de dados
+@app.route('/remover_despesa/<int:id>', methods=['DELETE'])
+def remover_despesa(id):
+    try:
+        despesa = db.session.query(Despesa).get_or_404(id)
+        db.session.delete(despesa)
+        db.session.commit()
+        return jsonify({'mensagem': 'Despesa removida com sucesso!'})
+    except Exception as e:
+        db.session.rollback()
+        print("Erro ao remover despesa:", str(e))
+        return jsonify({'mensagem': 'Erro ao remover despesa. Verifique o console para mais informações.'}), 500
 
 # Rota para listar todas as despesas do banco de dados
 @app.route('/listar_despesas')
