@@ -180,6 +180,25 @@ def grafico():
     graph.exibir_grafico_html(figura)
     return render_template('exibicao_grafico.html')
 
+@app.route('/atualizar_limite', methods=['POST'])
+def atualizar_limite():
+    try:
+        data = request.json
+        categoria_nome = data['categoria']
+        novo_limite = data['limite']
+
+        categoria = Categoria.query.filter_by(nome=categoria_nome).first()
+        if categoria:
+            categoria.limite = novo_limite
+            db.session.commit()
+            return jsonify({'mensagem': 'Limite de gastos atualizado com sucesso!'})
+        else:
+            return jsonify({'mensagem': f'A categoria "{categoria_nome}" não existe.'}), 404
+    except Exception as e:
+        db.session.rollback()
+        print("Erro ao atualizar limite de gastos:", str(e))
+        return jsonify({'mensagem': 'Erro ao atualizar limite de gastos. Verifique o console para mais informações.'}), 500
+
 
 if __name__ == '__main__':
     with app.app_context():  #criar o banco de dados dentro da aplicação Flask

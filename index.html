@@ -45,9 +45,9 @@
             </select>
         </div>
         <div class="form-group" id="limiteGastos" style="display: none;">
-            <label for="inputLimite">Limite de Gastos</label>
-            <input type="number" class="form-control" id="inputLimite" placeholder="Digite o limite de gastos">
-        </div>
+          <label for="inputLimite">Limite de Gastos</label>
+          <input type="number" class="form-control" id="inputLimite" placeholder="Digite o limite de gastos" onchange="atualizarLimite()">
+      </div>
           <button type="submit" class="btn btn-primary">Adicionar Despesa</button>
         </form>
       </div>
@@ -181,6 +181,26 @@ function removerDespesa(button) {
 function mostrarNotificacao(categoria) {
   $('#categoriaNotificacao').text(categoria); // Define o texto com o nome da categoria
   $('#notification').fadeIn().delay(5000).fadeOut(); // Mostra a notificação por 5 segundos e depois a esconde
+}
+
+// Função para lidar com a atualização do limite de gastos
+function atualizarLimite() {
+  var categoriaSelecionada = $('#inputCategoria').val();
+  var novoLimite = $('#inputLimite').val();
+  $.ajax({
+    type: 'POST',
+    url: '/atualizar_limite',
+    contentType: 'application/json',
+    data: JSON.stringify({ categoria: categoriaSelecionada, limite: parseFloat(novoLimite) }),
+    success: function(response) {
+      console.log(response);
+      alert('Limite de gastos atualizado com sucesso!');
+    },
+    error: function(xhr, status, error) {
+      console.error(xhr.responseText);
+      alert('Erro ao atualizar limite de gastos. Verifique o console para mais informações.');
+    }
+  });
 }
 
 
