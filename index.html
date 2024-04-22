@@ -11,6 +11,10 @@
   <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
+  <div id="notification" class="alert alert-danger mb-4" style="display: none;" role="alert">
+    Limite de gastos para a categoria <span id="categoriaNotificacao"></span> atingido!
+  </div>
+  
   <div class="container mt-5">
     <h1 class="mb-4">Gerenciador de Despesas Pessoais</h1>
     <a href="grafico">Ver Gráfico</a>
@@ -97,7 +101,8 @@ $('#formDespesa').submit(function(event) {
             success: function(response) {
                 console.log(response);
                 if (response.mensagem.startsWith('O limite de gastos para a categoria')) {
-                    alert(response.mensagem);
+                  var categoria = response.mensagem.split('"')[1]; // Extrai o nome da categoria da mensagem
+                  mostrarNotificacao(categoria);
                 }
                 // Adicionar a despesa à lista dinamicamente
                 var despesaItem = '<li class="list-group-item">' + nome + ' - R$ ' + valor + ' - ' + categoriaNome +
@@ -171,6 +176,11 @@ function removerDespesa(button) {
             }
         });
     }
+}
+
+function mostrarNotificacao(categoria) {
+  $('#categoriaNotificacao').text(categoria); // Define o texto com o nome da categoria
+  $('#notification').fadeIn().delay(5000).fadeOut(); // Mostra a notificação por 5 segundos e depois a esconde
 }
 
 
