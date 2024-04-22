@@ -18,7 +18,11 @@ Backlog e Backlog do Sprint podem ser encontrados na aba de projetos ou acessand
   Python (_Flask_)
   
 ## Diagrama de Classes
-  <img src="img/ClassUML.png">
+  <p align="center">
+   <img src="img/ClassUML.png">
+  </p>
 
 ##Diagrama de Atividades
-  <img src="img/FlowUML.png">
+  <p align="center">
+   <img src="img/FlowUML.png">
+  </p>
