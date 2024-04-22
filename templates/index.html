@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciador de Orçamentos</title>
+    <link rel="stylesheet" href="../static/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Gerenciador de Orçamentos</h1>
+        <div class="form-wrapper">
+            <form action="/adicionar_orcamento" method="post">
+                <input type="text" name="categoria" placeholder="Categoria" required>
+                <input type="number" name="valor" placeholder="Valor" step="0.01" required>
+                <button type="submit">Adicionar Orçamento</button>
+            </form>
+            {% if mensagem %}
+                <p>{{ mensagem }}</p>
+            {% endif %}
+        </div>
+        <div class="orcamentos">
+            <h2>Orçamentos</h2>
+            <input type="text" id="filtro" placeholder="Filtrar por categoria" oninput="filtrarOrcamentos()">
+            <table class="tabela-orcamentos">
+                <tr>
+                    <th>Categoria</th>
+                    <th>Valor</th>
+                    <th>Ações</th>
+                </tr>
+                {% for orcamento in orcamentos %}
+                    <tr class="orcamento">
+                        <td>{{ orcamento.categoria }}</td>
+                        <td>R$ {{ "{:.2f}".format(orcamento.valor) }}</td>
+                        <td>
+                            <button onclick="editarOrcamento({{ orcamento.id }})">Editar</button>
+                            <form action="/remover_orcamento/{{ orcamento.id }}" method="post">
+                                <button type="submit">Remover</button>
+                            </form>
+                            <form id="form-editar-{{ orcamento.id }}" action="/editar_orcamento/{{ orcamento.id }}" method="post" style="display: none;">
+                                <input type="text" name="categoria" value="{{ orcamento.categoria }}">
+                                <input type="number" name="valor" value="{{ orcamento.valor }}" step="0.01">
+                                <button type="submit">Salvar</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </table>
+            <canvas id="grafico-categorias"></canvas>
+        </div>
+    </div>
+
+    <script>
+        var ctx = document.getElementById('grafico-categorias').getContext('2d');
+        var categorias = [];
+        var valores = [];
+        {% for orcamento in orcamentos %}
+            categorias.push("{{ orcamento.categoria }}");
+            valores.push({{ orcamento.valor }});
+        {% endfor %}
+        var myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: categorias,
+                datasets: [{
+                    label: 'Valor por Categoria',
+                    data: valores,
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Valor (R$)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Categoria'
+                        }
+                    }
+                }
+            }
+        });
+
+        function editarOrcamento(id) {
+            var formEditar = document.getElementById('form-editar-' + id);
+            formEditar.style.display = 'block';
+        }
+
+        function filtrarOrcamentos() {
+            var filtro = document.getElementById('filtro').value.toUpperCase();
+            var tabela = document.querySelector('.tabela-orcamentos');
+            var linhas = tabela.getElementsByTagName('tr');
+
+            for (var i = 1; i < linhas.length; i++) {
+                var colunaCategoria = linhas[i].getElementsByTagName('td')[0];
+                if (colunaCategoria) {
+                    var textoCategoria = colunaCategoria.textContent || colunaCategoria.innerText;
+                    if (textoCategoria.toUpperCase().indexOf(filtro) > -1) {
+                        linhas[i].style.display = '';
+                    } else {
+                        linhas[i].style.display = 'none';
+                    }
+                }
+            }
+        }
+
+        var inputsValor = document.querySelectorAll('input[type="number"]');
+        inputsValor.forEach(function(input) {
+            input.addEventListener('input', function() {
+                if (parseFloat(this.value) < 0) {
+                    this.setCustomValidity('O valor precisa ser positivo.');
+                } else {
+                    this.setCustomValidity('');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
