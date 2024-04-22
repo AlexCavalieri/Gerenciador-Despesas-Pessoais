@@ -4,6 +4,7 @@ import os
 from flask import Flask, render_template, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func
+import pandas as pd
 
 app = Flask(__name__, template_folder='C:\gdp\Gerenciador-Despesas-Pessoais')
 
@@ -152,6 +153,20 @@ def remover_despesa(id):
         db.session.rollback()
         print("Erro ao remover despesa:", str(e))
         return jsonify({'mensagem': 'Erro ao remover despesa. Verifique o console para mais informações.'}), 500
+    
+def get_dataframe_despesas():
+    # Consultar todas as despesas do banco de dados
+    despesas = Despesa.query.all()
+    
+    # Criar uma lista de dicionários com os valores de valor e categoria de cada despesa
+    dados_despesas = [{'valor': despesa.valor, 
+                       'categoria': despesa.categoria.nome}  # Acessa o nome da categoria diretamente através do objeto de categoria
+                      for despesa in despesas]
+    
+    # Criar DataFrame pandas com os dados das despesas
+    dataframe_despesas = pd.DataFrame(dados_despesas)
+    
+    return dataframe_despesas
 
 
 if __name__ == '__main__':
