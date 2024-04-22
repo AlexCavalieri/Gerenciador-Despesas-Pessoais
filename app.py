@@ -56,8 +56,11 @@ def adicionar_despesa():
                 total_despesas_categoria = Despesa.query.with_entities(func.sum(Despesa.valor)).filter_by(categoria_id=categoria.id).scalar()
                 if total_despesas_categoria is None:
                     total_despesas_categoria = 0
-                if total_despesas_categoria + valor > limite_categoria:
-                    return jsonify({'mensagem': f'O limite de gastos para a categoria "{categoria_nome}" foi atingido!'}), 400
+                if total_despesas_categoria + valor >= limite_categoria:
+                    despesa = Despesa(nome=nome, valor=valor, categoria_id=categoria.id)
+                    db.session.add(despesa)
+                    db.session.commit()
+                    return jsonify({'mensagem': f'O limite de gastos para a categoria "{categoria_nome}" foi atingido!'})
             else:
                 return jsonify({'mensagem': f'A categoria "{categoria_nome}" não possui um limite de gastos definido.'}), 400
             
